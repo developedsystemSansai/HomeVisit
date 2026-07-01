@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ลงทะเบียนบ้าน / เจ้าหน้าที่</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+:root{
+  --bg:#f5f3ef;--surface:#fff;--surface2:#faf9f7;--border:#d8d2c8;
+  --primary:#1a5f7a;--primary-dk:#134a5f;--primary-lt:#e8f4f8;
+  --ok:#166534;--ok-bg:#dcfce7;--err:#991b1b;--err-bg:#fee2e2;--sub:#64748b;--text:#1e293b;--r:12px;--r-lg:18px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"Segoe UI",Tahoma,sans-serif;background:var(--bg);color:var(--text)}
+header{background:linear-gradient(135deg,var(--primary-dk),var(--primary));color:#fff;padding:18px 20px;text-align:center}
+header h1{font-size:17px;font-weight:700}
+.tabs{display:flex;max-width:560px;margin:16px auto 0;border-radius:12px;overflow:hidden;border:1.5px solid var(--border)}
+.tab{flex:1;text-align:center;padding:12px;font-size:13px;font-weight:700;background:var(--surface);color:var(--sub);cursor:pointer}
+.tab.active{background:var(--primary);color:#fff}
+main{max-width:560px;margin:16px auto 40px;padding:0 16px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px;margin-bottom:16px}
+.field{margin-bottom:14px}
+label{font-size:12px;font-weight:700;color:var(--sub);display:block;margin-bottom:6px}
+input,select,textarea{width:100%;border:1.5px solid var(--border);border-radius:var(--r);padding:11px 13px;font-size:14px;font-family:inherit;background:var(--surface2)}
+textarea{resize:vertical;min-height:60px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#pinMap{height:260px;border-radius:var(--r);overflow:hidden;margin-bottom:10px;border:1.5px solid var(--border)}
+.gps-btn{width:100%;background:var(--primary-lt);color:var(--primary-dk);border:1.5px solid var(--primary);border-radius:var(--r);padding:11px;font-size:13px;font-weight:700;margin-bottom:10px}
+.submit-btn{width:100%;background:var(--primary);color:#fff;border:none;border-radius:var(--r);padding:14px;font-size:15px;font-weight:700}
+.submit-btn:active{transform:scale(.98)}
+.result{margin-top:16px;text-align:center;padding:20px;border-radius:var(--r-lg);display:none}
+.result.show{display:block}
+.result.ok{background:var(--ok-bg);color:var(--ok)}
+.result.err{background:var(--err-bg);color:var(--err)}
+.result img{margin:14px 0;border:6px solid #fff;border-radius:14px;box-shadow:0 4px 16px rgba(0,0,0,.1)}
+.result .idtext{font-family:monospace;font-weight:700;font-size:15px;background:#fff;padding:4px 12px;border-radius:8px;display:inline-block;margin-top:6px}
+.print-btn{margin-top:12px;background:#fff;border:1.5px solid var(--ok);color:var(--ok);border-radius:var(--r);padding:9px 16px;font-size:13px;font-weight:700}
+.coords{font-size:12px;color:var(--sub);text-align:center;margin-bottom:10px}
+</style>
+</head>
+<body>
+
+<header><h1>📋 ลงทะเบียนระบบเยี่ยมบ้าน</h1></header>
+
+<div class="tabs">
+  <div class="tab active" id="tabHouse" onclick="switchTab('house')">🏠 ลงทะเบียนบ้าน</div>
+  <div class="tab" id="tabStaff" onclick="switchTab('staff')">🧑‍⚕️ ลงทะเบียนเจ้าหน้าที่</div>
+</div>
+
+<main>
+  <!-- ── HOUSE FORM ── -->
+  <div class="card" id="houseForm">
+    <div class="field"><label>ชื่อเจ้าของบ้าน / ผู้ป่วย *</label><input type="text" id="hName" placeholder="เช่น นายสมชาย ใจดี"></div>
+    <div class="field"><label>ที่อยู่ *</label><textarea id="hAddress" placeholder="บ้านเลขที่ / หมู่ / ตำบล"></textarea></div>
+    <div class="row2">
+      <div class="field"><label>กลุ่มเป้าหมาย</label>
+        <select id="hCategory">
+          <option value="">— เลือก —</option>
+          <option>ผู้สูงอายุติดเตียง</option>
+          <option>ผู้สูงอายุติดบ้าน</option>
+          <option>ผู้พิการ</option>
+          <option>หญิงตั้งครรภ์</option>
+          <option>เด็ก 0-5 ปี</option>
+          <option>ผู้ป่วยโรคเรื้อรัง</option>
+          <option>อื่นๆ</option>
+        </select>
+      </div>
+      <div class="field"><label>เบอร์โทร</label><input type="text" id="hPhone" placeholder="08xxxxxxxx"></div>
+    </div>
+
+    <label>ปักหมุดตำแหน่งบ้าน *</label>
+    <button class="gps-btn" onclick="useCurrentLocation('house')">📍 ใช้ตำแหน่งปัจจุบัน</button>
+    <div id="pinMapHouse" style="height:220px;border-radius:12px;overflow:hidden;margin-bottom:8px;border:1.5px solid var(--border)"></div>
+    <div class="coords" id="hCoords">ยังไม่ได้เลือกตำแหน่ง — แตะบนแผนที่เพื่อปักหมุด</div>
+
+    <div class="field"><label>หมายเหตุ</label><textarea id="hNote" placeholder="ข้อมูลเพิ่มเติม (ถ้ามี)"></textarea></div>
+
+    <button class="submit-btn" onclick="submitHouse()">✅ บันทึกและสร้าง QR</button>
+    <div class="result" id="houseResult"></div>
+  </div>
+
+  <!-- ── STAFF FORM ── -->
+  <div class="card" id="staffForm" style="display:none">
+    <div class="field"><label>ชื่อ-นามสกุล *</label><input type="text" id="sName" placeholder="เช่น นางสาวสมหญิง ตั้งใจ"></div>
+    <div class="field"><label>ตำแหน่ง</label><input type="text" id="sPosition" placeholder="เช่น พยาบาลเยี่ยมบ้าน, อสม."></div>
+    <div class="field"><label>เบอร์โทร</label><input type="text" id="sPhone" placeholder="08xxxxxxxx"></div>
+    <button class="submit-btn" onclick="submitStaff()">✅ บันทึกและสร้าง QR ประจำตัว</button>
+    <div class="result" id="staffResult"></div>
+  </div>
+</main>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════════════
+// ⚙️ ตั้งค่า: ใส่ URL ของ GAS Web App ที่ deploy แล้ว
+// ═══════════════════════════════════════════════════════════════
+const WEB_APP_URL = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec";
+const DEFAULT_CENTER = [18.7883, 98.9853]; // ปรับเป็นพิกัดพื้นที่ของหน่วยงาน
+
+let selectedLat = null, selectedLng = null;
+let houseMap, houseMarker;
+
+function initMap(){
+  houseMap = L.map('pinMapHouse').setView(DEFAULT_CENTER, 14);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution:'&copy; OpenStreetMap' }).addTo(houseMap);
+  houseMap.on('click', e=>{ setPin(e.latlng.lat, e.latlng.lng); });
+}
+function setPin(lat, lng){
+  selectedLat = lat; selectedLng = lng;
+  if (houseMarker) houseMarker.setLatLng([lat,lng]); else houseMarker = L.marker([lat,lng]).addTo(houseMap);
+  houseMap.setView([lat,lng], 16);
+  document.getElementById("hCoords").textContent = "พิกัด: " + lat.toFixed(6) + ", " + lng.toFixed(6);
+}
+window.addEventListener('load', initMap);
+
+function useCurrentLocation(){
+  if (!navigator.geolocation) { alert("อุปกรณ์นี้ไม่รองรับ GPS"); return; }
+  navigator.geolocation.getCurrentPosition(pos=>{
+    setPin(pos.coords.latitude, pos.coords.longitude);
+  }, err=>{ alert("ไม่สามารถอ่านตำแหน่งได้: " + err.message); }, { enableHighAccuracy:true });
+}
+
+function switchTab(t){
+  document.getElementById("tabHouse").classList.toggle("active", t==="house");
+  document.getElementById("tabStaff").classList.toggle("active", t==="staff");
+  document.getElementById("houseForm").style.display = t==="house" ? "block":"none";
+  document.getElementById("staffForm").style.display = t==="staff" ? "block":"none";
+  if (t==="house") setTimeout(()=>houseMap.invalidateSize(), 100);
+}
+
+async function callApi(payload){
+  const res = await fetch(WEB_APP_URL, { method:"POST", body: JSON.stringify(payload) });
+  return res.json();
+}
+
+async function submitHouse(){
+  const name = document.getElementById("hName").value.trim();
+  const address = document.getElementById("hAddress").value.trim();
+  if (!name || !address) { alert("กรุณากรอกชื่อและที่อยู่"); return; }
+  if (selectedLat === null) { alert("กรุณาปักหมุดตำแหน่งบ้านก่อน"); return; }
+
+  const payload = {
+    action:"registerHouse", name, address,
+    category: document.getElementById("hCategory").value,
+    phone: document.getElementById("hPhone").value.trim(),
+    note: document.getElementById("hNote").value.trim(),
+    lat: selectedLat, lng: selectedLng
+  };
+  const r = await callApi(payload);
+  const box = document.getElementById("houseResult");
+  box.classList.add("show");
+  if (r.status === "ok") {
+    box.className = "result show ok";
+    box.innerHTML = '✅ ลงทะเบียนสำเร็จ<br><b>' + r.name + '</b>' +
+      '<br><span class="idtext">' + r.houseId + '</span>' +
+      '<br><img src="' + r.qrUrl + '" width="200" height="200">' +
+      '<br><button class="print-btn" onclick="window.open(\'' + r.qrUrl + '\',\'_blank\')">🖨️ พิมพ์ QR ติดหน้าบ้าน</button>';
+  } else {
+    box.className = "result show err";
+    box.textContent = "❌ " + r.message;
+  }
+}
+
+async function submitStaff(){
+  const name = document.getElementById("sName").value.trim();
+  if (!name) { alert("กรุณากรอกชื่อเจ้าหน้าที่"); return; }
+  const payload = {
+    action:"registerStaff", name,
+    position: document.getElementById("sPosition").value.trim(),
+    phone: document.getElementById("sPhone").value.trim()
+  };
+  const r = await callApi(payload);
+  const box = document.getElementById("staffResult");
+  box.classList.add("show");
+  if (r.status === "ok") {
+    box.className = "result show ok";
+    box.innerHTML = '✅ ลงทะเบียนสำเร็จ<br><b>' + r.name + '</b>' +
+      '<br><span class="idtext">' + r.staffId + '</span>' +
+      '<br><img src="' + r.qrUrl + '" width="200" height="200">' +
+      '<br><button class="print-btn" onclick="window.open(\'' + r.qrUrl + '\',\'_blank\')">🖨️ พิมพ์ QR ประจำตัว</button>';
+  } else {
+    box.className = "result show err";
+    box.textContent = "❌ " + r.message;
+  }
+}
+</script>
+</body>
+</html>
