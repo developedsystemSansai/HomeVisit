@@ -2,96 +2,193 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<title>แอปเจ้าหน้าที่เยี่ยมบ้าน</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<title>เยี่ยมบ้าน · แอปเจ้าหน้าที่</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@600;700&family=Noto+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
+/* ═══════════════ Design tokens ═══════════════ */
 :root{
-  --bg:#f5f3ef;--surface:#fff;--surface2:#faf9f7;--border:#d8d2c8;
-  --primary:#1a5f7a;--primary-dk:#134a5f;--primary-lt:#e8f4f8;
-  --ok:#166534;--ok-bg:#dcfce7;--warn:#92400e;--warn-bg:#fef3c7;--err:#991b1b;--err-bg:#fee2e2;
-  --text:#1e293b;--sub:#64748b;--r:12px;--r-lg:18px;
+  --ink:#1c2a20; --ink-soft:#5b6a5f;
+  --paper:#f6f2e8; --surface:#ffffff; --surface-2:#efe9d9;
+  --line:#e1d9c4;
+  --forest:#28513a; --forest-dk:#173023; --forest-lt:#e5efe3;
+  --sun:#c96a2e; --sun-lt:#fbe7d2;
+  --sky:#2f6690; --sky-lt:#e3eef5;
+  --danger:#b6432f; --danger-lt:#fbe4dc;
+  --success:#2f7d4f; --success-lt:#e2f2e6;
+  --r-sm:10px; --r:16px; --r-lg:24px;
+  --shadow:0 10px 30px rgba(23,48,35,.12);
+  --font-d:'Noto Serif Thai',serif; --font-b:'Noto Sans Thai',sans-serif; --font-m:'IBM Plex Mono',monospace;
+  --safe-b:env(safe-area-inset-bottom,0px);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:-apple-system,"Segoe UI",Tahoma,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
-.top{background:linear-gradient(135deg,var(--primary-dk),var(--primary));color:#fff;padding:16px 18px;text-align:center;position:relative}
-.top h1{font-size:16px;font-weight:700}
-.top .sub{font-size:12px;opacity:.85;margin-top:2px}
-.gps-dot{position:absolute;top:16px;right:16px;display:flex;align-items:center;gap:5px;font-size:11px;font-weight:700}
-.dot{width:8px;height:8px;border-radius:50%;background:#94a3b8}
-.dot.live{background:#22c55e;box-shadow:0 0 0 4px rgba(34,197,94,.25);animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{box-shadow:0 0 0 4px rgba(34,197,94,.25)}50%{box-shadow:0 0 0 8px rgba(34,197,94,.08)}}
-main{flex:1;padding:16px;max-width:480px;margin:0 auto;width:100%}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px;margin-bottom:14px}
-.staff-card{display:flex;align-items:center;gap:12px}
-.avatar{width:44px;height:44px;border-radius:50%;background:var(--primary-lt);color:var(--primary);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:17px;flex-shrink:0}
-.staff-name{font-weight:700;font-size:15px}
-.staff-pos{font-size:12px;color:var(--sub)}
-.logout{margin-left:auto;font-size:11px;color:var(--sub);border:1px solid var(--border);border-radius:8px;padding:6px 10px;background:var(--surface2)}
-h2{font-size:14px;font-weight:700;margin-bottom:10px;color:var(--primary-dk)}
-.scan-btn{width:100%;background:var(--primary);color:#fff;border:none;border-radius:var(--r);padding:16px;font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px}
-.scan-btn:active{transform:scale(.98)}
-.scan-btn.secondary{background:var(--surface2);color:var(--primary-dk);border:1.5px solid var(--border)}
-#video-wrap{display:none;position:fixed;inset:0;background:#000;z-index:50;flex-direction:column}
+html{-webkit-text-size-adjust:100%}
+body{font-family:var(--font-b);background:var(--paper);color:var(--ink);min-height:100vh;line-height:1.5;font-size:15px}
+button{font-family:inherit;cursor:pointer}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* ── header ── */
+.appbar{position:sticky;top:0;z-index:20;background:var(--forest-dk);color:#fff;padding:12px 16px;display:flex;align-items:center;gap:10px;box-shadow:0 2px 12px rgba(0,0,0,.15)}
+.mark{width:30px;height:30px;flex-shrink:0}
+.appbar .titles{line-height:1.25}
+.appbar .org{font-family:var(--font-d);font-size:14px;font-weight:700}
+.appbar .sub{font-size:10.5px;opacity:.72;letter-spacing:.02em}
+.gps-pill{margin-left:auto;display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.1);border-radius:20px;padding:6px 10px;font-size:11px;font-weight:600;white-space:nowrap}
+.dot{width:7px;height:7px;border-radius:50%;background:#7c8f83}
+.dot.live{background:#5fd989;box-shadow:0 0 0 3px rgba(95,217,137,.28)}
+
+main{max-width:520px;margin:0 auto;padding:18px 16px calc(24px + var(--safe-b))}
+
+/* ── welcome / login ── */
+.hero{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:36px 24px;text-align:center;box-shadow:var(--shadow);margin-top:20px}
+.hero .mark-lg{width:64px;height:64px;margin:0 auto 18px}
+.hero h1{font-family:var(--font-d);font-size:20px;font-weight:700;color:var(--forest-dk);margin-bottom:8px}
+.hero p{color:var(--ink-soft);font-size:13.5px;max-width:320px;margin:0 auto 24px;line-height:1.65}
+
+/* ── buttons ── */
+.btn{width:100%;border:none;border-radius:var(--r);padding:16px 18px;font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:9px;transition:transform .12s}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--forest);color:#fff}
+.btn-primary:hover{background:var(--forest-dk)}
+.btn-accent{background:var(--sun);color:#fff}
+.btn-ghost{background:var(--surface-2);color:var(--forest-dk);border:1.5px solid var(--line)}
+.btn-sm{padding:10px 14px;font-size:13px;border-radius:var(--r-sm)}
+.btn:disabled{opacity:.5;pointer-events:none}
+
+/* ── staff strip ── */
+.strip{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:16px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow);margin-bottom:14px}
+.avatar{width:46px;height:46px;border-radius:50%;background:var(--forest-lt);color:var(--forest-dk);display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-weight:700;font-size:18px;flex-shrink:0}
+.strip .name{font-weight:700;font-size:15px}
+.strip .pos{font-size:12px;color:var(--ink-soft)}
+.logout{margin-left:auto;font-size:11.5px;color:var(--ink-soft);background:none;border:none;text-decoration:underline;padding:6px}
+
+/* ── stat grid ── */
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.stat-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;text-align:center}
+.stat-card b{display:block;font-family:var(--font-m);font-size:24px;color:var(--forest-dk);margin-bottom:2px}
+.stat-card span{font-size:11px;color:var(--ink-soft)}
+
+.section-lbl{font-size:11.5px;font-weight:700;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.06em;margin:20px 0 10px}
+
+/* ── visit list ── */
+.visit-item{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.visit-item .vh{flex:1;min-width:0}
+.visit-item .vname{font-weight:600;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.visit-item .vtime{font-size:11px;color:var(--ink-soft);font-family:var(--font-m)}
+.chip{font-size:10.5px;font-weight:700;padding:4px 9px;border-radius:20px;flex-shrink:0}
+.chip.ok{background:var(--success-lt);color:var(--success)}
+.chip.warn{background:var(--sun-lt);color:var(--sun)}
+.empty{text-align:center;color:var(--ink-soft);font-size:12.5px;padding:22px 10px}
+
+/* ── camera overlay ── */
+#video-wrap{display:none;position:fixed;inset:0;background:#0d1712;z-index:60;flex-direction:column}
 #video-wrap.on{display:flex}
 #video{flex:1;object-fit:cover;width:100%}
-.scan-frame{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:70%;max-width:280px;aspect-ratio:1;border:3px solid #fff;border-radius:16px;box-shadow:0 0 0 2000px rgba(0,0,0,.45)}
-.cam-close{position:absolute;top:16px;right:16px;background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:50%;width:40px;height:40px;font-size:18px;z-index:5}
-.cam-hint{position:absolute;bottom:40px;left:0;right:0;text-align:center;color:#fff;font-size:13px;opacity:.85}
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1e293b;color:#fff;padding:12px 20px;border-radius:12px;font-size:13px;font-weight:600;z-index:100;max-width:90%;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.25)}
-.toast.ok{background:var(--ok-bg);color:var(--ok)}
-.toast.warn{background:var(--warn-bg);color:var(--warn)}
-.toast.err{background:var(--err-bg);color:var(--err)}
-.result-box{border-radius:var(--r);padding:14px;margin-top:10px;font-size:13px;line-height:1.6}
-.result-box.ok{background:var(--ok-bg);color:var(--ok)}
-.result-box.warn{background:var(--warn-bg);color:var(--warn)}
-.field{margin-bottom:12px}
-label{font-size:12px;font-weight:700;color:var(--sub);display:block;margin-bottom:5px}
-textarea,input[type=text]{width:100%;border:1.5px solid var(--border);border-radius:var(--r);padding:10px 12px;font-size:14px;font-family:inherit}
-textarea{resize:vertical;min-height:60px}
-.house-info{background:var(--primary-lt);border-radius:var(--r);padding:12px 14px;margin-bottom:12px}
-.house-info b{color:var(--primary-dk)}
-.muted{color:var(--sub);font-size:12px;text-align:center;padding:20px}
+.scan-frame{position:absolute;top:44%;left:50%;transform:translate(-50%,-50%);width:72%;max-width:290px;aspect-ratio:1}
+.scan-frame::before,.scan-frame::after,.scan-frame i::before,.scan-frame i::after{content:'';position:absolute;width:34px;height:34px;border:3px solid #f4efe0}
+.scan-frame::before{top:0;left:0;border-right:none;border-bottom:none;border-radius:10px 0 0 0}
+.scan-frame::after{top:0;right:0;border-left:none;border-bottom:none;border-radius:0 10px 0 0}
+.scan-frame i::before{bottom:0;left:0;border-right:none;border-top:none;border-radius:0 0 0 10px}
+.scan-frame i::after{bottom:0;right:0;border-left:none;border-top:none;border-radius:0 0 10px 0}
+.cam-top{position:absolute;top:0;left:0;right:0;padding:16px;display:flex;justify-content:space-between;align-items:center;z-index:2}
+.cam-title{color:#f4efe0;font-size:13px;font-weight:600;background:rgba(0,0,0,.35);padding:8px 14px;border-radius:20px}
+.cam-close{background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:50%;width:38px;height:38px;font-size:17px}
+.cam-hint{position:absolute;bottom:calc(36px + var(--safe-b));left:0;right:0;text-align:center;color:#f4efe0;font-size:12.5px;opacity:.85}
+
+/* ── bottom sheet ── */
+.scrim{display:none;position:fixed;inset:0;background:rgba(23,48,35,.45);z-index:40}
+.scrim.on{display:block}
+.sheet{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-radius:24px 24px 0 0;z-index:41;max-height:88vh;overflow-y:auto;transform:translateY(100%);transition:transform .28s cubic-bezier(.2,.8,.2,1);box-shadow:0 -10px 40px rgba(0,0,0,.25);padding:8px 20px calc(20px + var(--safe-b))}
+.sheet.on{transform:translateY(0)}
+.sheet-handle{width:38px;height:4px;background:var(--line);border-radius:4px;margin:8px auto 14px}
+.sheet-close{position:absolute;top:14px;right:16px;background:var(--surface-2);border:none;width:32px;height:32px;border-radius:50%;font-size:15px;color:var(--ink-soft)}
+.house-card{background:var(--forest-lt);border-radius:var(--r);padding:14px 16px;margin-bottom:16px}
+.house-card b{font-family:var(--font-d);font-size:16px;color:var(--forest-dk);display:block;margin-bottom:3px}
+.house-card .addr{font-size:12.5px;color:var(--ink-soft);line-height:1.5}
+.house-card .badge{display:inline-block;margin-top:8px;font-size:10.5px;font-weight:700;background:#fff;color:var(--forest);padding:3px 10px;border-radius:20px}
+.field{margin-bottom:14px}
+label{font-size:12px;font-weight:700;color:var(--ink-soft);display:block;margin-bottom:6px}
+textarea,input[type=text]{width:100%;border:1.5px solid var(--line);border-radius:var(--r-sm);padding:11px 13px;font-size:14px;font-family:inherit;background:var(--paper);color:var(--ink)}
+textarea{resize:vertical;min-height:64px}
+textarea:focus,input:focus{outline:2px solid var(--forest);outline-offset:1px}
+.photo-zone{border:1.5px dashed var(--line);border-radius:var(--r);padding:14px;text-align:center}
+.photo-zone.has-img{padding:8px}
+.photo-preview{position:relative;border-radius:12px;overflow:hidden}
+.photo-preview img{width:100%;max-height:220px;object-fit:cover;display:block}
+.photo-remove{position:absolute;top:8px;right:8px;background:rgba(23,48,35,.7);color:#fff;border:none;border-radius:50%;width:30px;height:30px;font-size:14px}
+.result-box{border-radius:var(--r);padding:14px 16px;margin-top:14px;font-size:13.5px;line-height:1.6}
+.result-box.ok{background:var(--success-lt);color:var(--success)}
+.result-box.warn{background:var(--sun-lt);color:#8a4a1e}
+.result-box.err{background:var(--danger-lt);color:var(--danger)}
+
+.toast{position:fixed;bottom:calc(20px + var(--safe-b));left:50%;transform:translateX(-50%);background:var(--forest-dk);color:#fff;padding:12px 20px;border-radius:12px;font-size:13px;font-weight:600;z-index:100;max-width:90%;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.3)}
+.toast.ok{background:var(--success)}
+.toast.warn{background:var(--sun)}
+.toast.err{background:var(--danger)}
+
+.spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px}
+@keyframes sp{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
 
-<div class="top">
-  <h1>🏠 แอปเจ้าหน้าที่เยี่ยมบ้าน</h1>
-  <div class="sub" id="orgLine">ระบบเยี่ยมบ้าน GPS/GIS</div>
-  <div class="gps-dot"><span class="dot" id="gpsDot"></span><span id="gpsLabel">ไม่ได้เชื่อมตำแหน่ง</span></div>
-</div>
+<header class="appbar">
+  <svg class="mark" viewBox="0 0 48 48" fill="none"><path d="M6 24 22 8a3 3 0 0 1 4 0l16 16" stroke="#fbe7d2" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M11 20v18a2 2 0 0 0 2 2h5v-11h12v11h5a2 2 0 0 0 2-2V20" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <div class="titles">
+    <div class="org" id="orgLine">รพ.สต. เยี่ยมบ้าน</div>
+    <div class="sub">งานเยี่ยมบ้านเชิงรุกในชุมชน</div>
+  </div>
+  <div class="gps-pill"><span class="dot" id="gpsDot"></span><span id="gpsLabel">ไม่ได้เชื่อมตำแหน่ง</span></div>
+</header>
 
 <main>
-  <div id="loginSection" class="card">
-    <h2>เข้าสู่ระบบเจ้าหน้าที่</h2>
-    <p class="muted" style="padding:0 0 12px;text-align:left">สแกน QR ประจำตัวเจ้าหน้าที่ของคุณเพื่อเริ่มปฏิบัติงาน</p>
-    <button class="scan-btn" onclick="startScan('staff')">📷 สแกน QR เจ้าหน้าที่</button>
+  <div id="loginSection">
+    <div class="hero">
+      <svg class="mark-lg" viewBox="0 0 48 48" fill="none"><path d="M6 24 22 8a3 3 0 0 1 4 0l16 16" stroke="#c96a2e" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M11 20v18a2 2 0 0 0 2 2h5v-11h12v11h5a2 2 0 0 0 2-2V20" stroke="#28513a" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <h1>เริ่มปฏิบัติงานเยี่ยมบ้าน</h1>
+      <p>สแกน QR ประจำตัวของคุณเพื่อเข้าสู่ระบบ ระบบจะเริ่มส่งตำแหน่งของคุณให้ส่วนกลางเห็นแบบสด ๆ ระหว่างออกเยี่ยม</p>
+      <button class="btn btn-primary" onclick="startScan('staff')">📷 สแกน QR เจ้าหน้าที่</button>
+    </div>
   </div>
 
   <div id="staffSection" style="display:none">
-    <div class="card staff-card">
+    <div class="strip">
       <div class="avatar" id="avatarInit">A</div>
       <div>
-        <div class="staff-name" id="staffName">–</div>
-        <div class="staff-pos" id="staffPos">–</div>
+        <div class="name" id="staffName">–</div>
+        <div class="pos" id="staffPos">–</div>
       </div>
       <button class="logout" onclick="logout()">ออกจากระบบ</button>
     </div>
 
-    <div class="card">
-      <h2>เยี่ยมบ้าน</h2>
-      <button class="scan-btn" onclick="startScan('house')">📷 สแกน QR บ้านที่เยี่ยม</button>
-      <div id="visitResult"></div>
+    <div class="stats">
+      <div class="stat-card"><b id="todayCount">0</b><span>หลังที่เยี่ยมวันนี้</span></div>
+      <div class="stat-card"><b id="gpsAccuracy">—</b><span>สถานะสัญญาณ GPS</span></div>
     </div>
+
+    <button class="btn btn-accent" onclick="startScan('house')">📷 สแกน QR บ้านที่มาเยี่ยม</button>
+
+    <div class="section-lbl">รายการเยี่ยมวันนี้</div>
+    <div id="todayList"><div class="empty">ยังไม่มีรายการเยี่ยมในวันนี้</div></div>
   </div>
 </main>
 
+<!-- camera -->
 <div id="video-wrap">
-  <button class="cam-close" onclick="closeCamera()">✕</button>
+  <div class="cam-top"><span class="cam-title" id="camTitle">สแกน QR</span><button class="cam-close" onclick="closeCamera()">✕</button></div>
   <video id="video" playsinline autoplay muted></video>
-  <div class="scan-frame"></div>
-  <div class="cam-hint" id="camHint">วางกล้องให้เห็น QR Code ในกรอบ</div>
+  <div class="scan-frame"><i></i></div>
+  <div class="cam-hint">วางกล้องให้เห็น QR Code ในกรอบ</div>
   <canvas id="canvas" style="display:none"></canvas>
+</div>
+
+<!-- visit bottom sheet -->
+<div class="scrim" id="scrim" onclick="closeSheet()"></div>
+<div class="sheet" id="sheet">
+  <button class="sheet-close" onclick="closeSheet()">✕</button>
+  <div class="sheet-handle"></div>
+  <div id="sheetBody"></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
@@ -100,33 +197,33 @@ textarea{resize:vertical;min-height:60px}
 // ⚙️ ตั้งค่า: ใส่ URL ของ GAS Web App ที่ deploy แล้ว
 // ═══════════════════════════════════════════════════════════════
 const WEB_APP_URL = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec";
-const LOCATION_INTERVAL_MS = 15000; // ส่งพิกัดทุก 15 วิ
+const LOCATION_INTERVAL_MS = 15000;
+const ORG_LABEL = "รพ.สต. เยี่ยมบ้าน"; // เปลี่ยนเป็นชื่อหน่วยงานจริง
+document.getElementById("orgLine").textContent = ORG_LABEL;
 
 let staffId = localStorage.getItem("hv_staffId") || "";
 let staffName = localStorage.getItem("hv_staffName") || "";
 let staffPos = localStorage.getItem("hv_staffPos") || "";
-let scanMode = null; // 'staff' | 'house'
+let scanMode = null;
 let stream = null, rafId = null;
 let watchId = null, locTimer = null;
-let lastLat = null, lastLng = null;
+let lastLat = null, lastLng = null, lastAccuracy = null;
+let pendingPhoto = null; // {base64, mimeType}
+let todayVisits = [];
 
 function toast(msg, type){
   const t = document.createElement("div");
   t.className = "toast" + (type ? " " + type : "");
   t.textContent = msg;
   document.body.appendChild(t);
-  setTimeout(()=>t.remove(), 3200);
+  setTimeout(()=>t.remove(), 3400);
 }
-
 async function callApi(payload){
-  const res = await fetch(WEB_APP_URL, {
-    method: "POST",
-    body: JSON.stringify(payload)
-  });
+  const res = await fetch(WEB_APP_URL, { method:"POST", body: JSON.stringify(payload) });
   return res.json();
 }
 
-// ── UI state ──────────────────────────────────────
+// ── login / logout ──────────────────────────────
 function renderLoggedIn(){
   document.getElementById("loginSection").style.display = "none";
   document.getElementById("staffSection").style.display = "block";
@@ -138,26 +235,22 @@ function renderLoggedIn(){
 function logout(){
   stopLocationTracking();
   callApi({ action:"staffOffline", staffId }).catch(()=>{});
-  localStorage.removeItem("hv_staffId");
-  localStorage.removeItem("hv_staffName");
-  localStorage.removeItem("hv_staffPos");
-  staffId = ""; staffName = ""; staffPos = "";
+  localStorage.removeItem("hv_staffId"); localStorage.removeItem("hv_staffName"); localStorage.removeItem("hv_staffPos");
+  staffId = ""; staffName = ""; staffPos = ""; todayVisits = [];
   document.getElementById("loginSection").style.display = "block";
   document.getElementById("staffSection").style.display = "none";
 }
 if (staffId) renderLoggedIn();
 
-// ── GPS tracking ──────────────────────────────────
+// ── GPS ──────────────────────────────────────────
 function startLocationTracking(){
   if (!navigator.geolocation) { toast("อุปกรณ์นี้ไม่รองรับ GPS","err"); return; }
   const dot = document.getElementById("gpsDot"), label = document.getElementById("gpsLabel");
   watchId = navigator.geolocation.watchPosition(pos=>{
-    lastLat = pos.coords.latitude; lastLng = pos.coords.longitude;
-    dot.classList.add("live"); label.textContent = "กำลังส่งตำแหน่งสด";
-  }, err=>{
-    label.textContent = "ไม่สามารถอ่านตำแหน่งได้";
-  }, { enableHighAccuracy:true, maximumAge:5000, timeout:10000 });
-
+    lastLat = pos.coords.latitude; lastLng = pos.coords.longitude; lastAccuracy = pos.coords.accuracy;
+    dot.classList.add("live"); label.textContent = "ส่งตำแหน่งสด";
+    document.getElementById("gpsAccuracy").textContent = "±" + Math.round(lastAccuracy) + " ม.";
+  }, ()=>{ label.textContent = "อ่านตำแหน่งไม่ได้"; }, { enableHighAccuracy:true, maximumAge:5000, timeout:10000 });
   sendLocation();
   locTimer = setInterval(sendLocation, LOCATION_INTERVAL_MS);
 }
@@ -169,27 +262,20 @@ function stopLocationTracking(){
 }
 async function sendLocation(){
   if (lastLat === null || !staffId) return;
-  try { await callApi({ action:"updateLocation", staffId, lat:lastLat, lng:lastLng, accuracy:0 }); }
-  catch(e){ /* เงียบไว้ ลองใหม่รอบถัดไป */ }
+  try { await callApi({ action:"updateLocation", staffId, lat:lastLat, lng:lastLng, accuracy:lastAccuracy||0 }); } catch(e){}
 }
 
-// ── QR camera scan (jsQR) ────────────────────────
+// ── camera / jsQR ────────────────────────────────
 async function startScan(mode){
   scanMode = mode;
-  document.getElementById("camHint").textContent = mode === "staff"
-    ? "สแกน QR ประจำตัวเจ้าหน้าที่"
-    : "สแกน QR ติดหน้าบ้านที่จะเยี่ยม";
+  document.getElementById("camTitle").textContent = mode === "staff" ? "สแกน QR เจ้าหน้าที่" : "สแกน QR หน้าบ้าน";
   document.getElementById("video-wrap").classList.add("on");
   try {
     stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
     const video = document.getElementById("video");
-    video.srcObject = stream;
-    await video.play();
+    video.srcObject = stream; await video.play();
     tickScan();
-  } catch(e) {
-    toast("ไม่สามารถเปิดกล้องได้: " + e.message, "err");
-    closeCamera();
-  }
+  } catch(e) { toast("ไม่สามารถเปิดกล้องได้: " + e.message, "err"); closeCamera(); }
 }
 function closeCamera(){
   if (rafId) cancelAnimationFrame(rafId);
@@ -217,9 +303,7 @@ async function onScanResult(text){
     const r = await callApi({ action:"getStaff", staffId:id });
     if (r.status !== "ok") { toast(r.message,"err"); return; }
     staffId = r.staffId; staffName = r.name; staffPos = r.position;
-    localStorage.setItem("hv_staffId", staffId);
-    localStorage.setItem("hv_staffName", staffName);
-    localStorage.setItem("hv_staffPos", staffPos);
+    localStorage.setItem("hv_staffId", staffId); localStorage.setItem("hv_staffName", staffName); localStorage.setItem("hv_staffPos", staffPos);
     toast("เข้าสู่ระบบสำเร็จ: " + staffName, "ok");
     renderLoggedIn();
   } else if (scanMode === "house") {
@@ -227,32 +311,107 @@ async function onScanResult(text){
     const houseId = text.split(":")[1];
     const info = await callApi({ action:"getHouse", houseId });
     if (info.status !== "ok") { toast(info.message,"err"); return; }
-    showVisitConfirm(houseId, info);
+    openVisitSheet(houseId, info);
   }
 }
 
-function showVisitConfirm(houseId, info){
-  const box = document.getElementById("visitResult");
-  box.innerHTML =
-    '<div class="house-info"><b>' + info.name + '</b><br>' + info.address +
-    (info.category ? '<br>กลุ่ม: ' + info.category : '') + '</div>' +
-    '<div class="field"><label>บันทึกเพิ่มเติม (ถ้ามี)</label><textarea id="visitNote" placeholder="เช่น อาการ, สิ่งที่แนะนำ..."></textarea></div>' +
-    '<button class="scan-btn" onclick="confirmVisit(\'' + houseId + '\')">✅ ยืนยันบันทึกการเยี่ยม</button>';
+// ── bottom sheet ─────────────────────────────────
+function openSheet(){ document.getElementById("scrim").classList.add("on"); document.getElementById("sheet").classList.add("on"); }
+function closeSheet(){ document.getElementById("scrim").classList.remove("on"); document.getElementById("sheet").classList.remove("on"); pendingPhoto = null; }
+
+function openVisitSheet(houseId, info){
+  pendingPhoto = null;
+  document.getElementById("sheetBody").innerHTML =
+    '<div class="house-card"><b>' + info.name + '</b><div class="addr">' + info.address + '</div>' +
+    (info.category ? '<span class="badge">' + info.category + '</span>' : '') + '</div>' +
+    '<div class="field"><label>บันทึกจากการเยี่ยม (อาการ / คำแนะนำ ฯลฯ)</label><textarea id="visitNote" placeholder="พิมพ์บันทึกที่นี่..."></textarea></div>' +
+    '<div class="field"><label>ภาพประกอบการเยี่ยม (ถ้ามี)</label>' +
+    '<div class="photo-zone" id="photoZone">' +
+      '<button class="btn btn-ghost btn-sm" onclick="document.getElementById(\'photoInput\').click()">📷 ถ่ายภาพ / เลือกรูป</button>' +
+      '<input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none" onchange="onPhotoChosen(event)">' +
+    '</div></div>' +
+    '<button class="btn btn-primary" id="confirmBtn" onclick="confirmVisit(\'' + houseId + '\')">✅ ยืนยันบันทึกการเยี่ยม</button>' +
+    '<div id="visitResult"></div>';
+  openSheet();
+}
+
+function onPhotoChosen(ev){
+  const file = ev.target.files[0];
+  if (!file) return;
+  compressImage(file, 1280, 0.72).then(({base64, mimeType, dataUrl})=>{
+    pendingPhoto = { base64, mimeType };
+    const zone = document.getElementById("photoZone");
+    zone.classList.add("has-img");
+    zone.innerHTML = '<div class="photo-preview"><img src="' + dataUrl + '"><button type="button" class="photo-remove" onclick="removePhoto()">✕</button></div>';
+  }).catch(()=>toast("ไม่สามารถประมวลผลรูปภาพได้","err"));
+}
+function removePhoto(){
+  pendingPhoto = null;
+  const zone = document.getElementById("photoZone");
+  zone.classList.remove("has-img");
+  zone.innerHTML = '<button class="btn btn-ghost btn-sm" onclick="document.getElementById(\'photoInput\').click()">📷 ถ่ายภาพ / เลือกรูป</button>' +
+    '<input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none" onchange="onPhotoChosen(event)">';
+}
+function compressImage(file, maxW, quality){
+  return new Promise((resolve, reject)=>{
+    const reader = new FileReader();
+    reader.onload = e=>{
+      const img = new Image();
+      img.onload = ()=>{
+        let w = img.width, h = img.height;
+        if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+        const canvas = document.createElement("canvas");
+        canvas.width = w; canvas.height = h;
+        canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+        const dataUrl = canvas.toDataURL("image/jpeg", quality);
+        resolve({ base64: dataUrl.split(",")[1], mimeType: "image/jpeg", dataUrl });
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 }
 
 async function confirmVisit(houseId){
   if (lastLat === null) { toast("กำลังรอสัญญาณ GPS กรุณารอสักครู่แล้วลองใหม่","warn"); return; }
+  const btn = document.getElementById("confirmBtn");
+  btn.disabled = true; btn.innerHTML = '<span class="spin"></span> กำลังบันทึก...';
   const note = document.getElementById("visitNote").value;
   const r = await callApi({ action:"visitCheckin", staffId, houseId, lat:lastLat, lng:lastLng, note });
   const box = document.getElementById("visitResult");
+
   if (r.status === "ok") {
-    box.innerHTML = '<div class="result-box ' + (r.warning ? "warn" : "ok") + '">' +
-      (r.warning ? "⚠️ " : "✅ ") + r.message + '</div>';
+    box.innerHTML = '<div class="result-box ' + (r.warning ? "warn" : "ok") + '">' + (r.warning ? "⚠️ " : "✅ ") + r.message + '</div>';
     toast(r.message, r.warning ? "warn" : "ok");
+    btn.textContent = "✅ บันทึกแล้ว";
+    todayVisits.unshift({ name: r.houseName, time: new Date().toLocaleTimeString("th-TH",{hour:'2-digit',minute:'2-digit'}), warning: r.warning });
+    renderTodayList();
+    document.getElementById("todayCount").textContent = todayVisits.length;
+
+    if (pendingPhoto) {
+      box.innerHTML += '<div class="result-box ok" id="uploadStatus">⏳ กำลังอัพโหลดรูปภาพ...</div>';
+      try {
+        const up = await callApi({ action:"uploadPhoto", houseId, staffId, visitId:r.visitId, type:"visit", base64:pendingPhoto.base64, mimeType:pendingPhoto.mimeType });
+        document.getElementById("uploadStatus").innerHTML = up.status === "ok" ? "🖼️ บันทึกรูปภาพประกอบเรียบร้อย" : "⚠️ อัพโหลดรูปไม่สำเร็จ: " + up.message;
+      } catch(e) { document.getElementById("uploadStatus").textContent = "⚠️ อัพโหลดรูปไม่สำเร็จ"; }
+    }
+    setTimeout(closeSheet, 1600);
   } else {
-    box.innerHTML = '<div class="result-box warn">❌ ' + r.message + '</div>';
+    box.innerHTML = '<div class="result-box err">❌ ' + r.message + '</div>';
     toast(r.message, "err");
+    btn.disabled = false; btn.textContent = "✅ ยืนยันบันทึกการเยี่ยม";
   }
+}
+
+function renderTodayList(){
+  const el = document.getElementById("todayList");
+  if (!todayVisits.length) { el.innerHTML = '<div class="empty">ยังไม่มีรายการเยี่ยมในวันนี้</div>'; return; }
+  el.innerHTML = todayVisits.map(v=>
+    '<div class="visit-item"><div class="vh"><div class="vname">' + v.name + '</div><div class="vtime">' + v.time + '</div></div>' +
+    '<span class="chip ' + (v.warning?'warn':'ok') + '">' + (v.warning?'ตำแหน่งห่าง':'สำเร็จ') + '</span></div>'
+  ).join("");
 }
 </script>
 </body>
