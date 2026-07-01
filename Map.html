@@ -32,7 +32,13 @@ header h1{font-size:15px;font-weight:700}
 .house-marker{width:22px;height:22px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3)}
 .house-marker.visited{background:#16a34a}
 .house-marker.pending{background:#dc2626}
+.facility-marker{background:#ea580c;color:#fff;border-radius:8px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:15px;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3)}
 .leaflet-popup-content{font-size:13px;line-height:1.6}
+
+/* hover preview tooltip */
+.leaflet-tooltip.hv-tip{background:#fff;border:1px solid var(--border);border-radius:10px;padding:8px 11px;font-size:12.5px;line-height:1.6;box-shadow:0 6px 20px rgba(0,0,0,.18);color:var(--text);max-width:230px;white-space:normal}
+.leaflet-tooltip.hv-tip::before{border-top-color:var(--border)}
+.hv-tip b{display:block;font-size:13px;margin-bottom:1px}
 
 .pagenav{background:var(--primary-dk);display:flex;gap:2px;padding:0 14px;overflow-x:auto}
 .pagenav a{color:rgba(255,255,255,.65);text-decoration:none;font-size:12.5px;font-weight:600;padding:9px 12px;border-bottom:2.5px solid transparent;white-space:nowrap}
@@ -50,6 +56,7 @@ header h1{font-size:15px;font-weight:700}
     <div class="stat"><b id="kpiVisited">–</b>เยี่ยมแล้ว</div>
     <div class="stat"><b id="kpiPending">–</b>ยังไม่เยี่ยม</div>
     <div class="stat"><b id="kpiStaff">–</b>จนท.ออกปฏิบัติงาน</div>
+    <div class="stat"><b id="kpiFacility">–</b>หน่วยบริการ</div>
   </div>
 </header>
 
@@ -66,6 +73,7 @@ header h1{font-size:15px;font-weight:700}
     <div class="row"><span class="sw" style="background:#94a3b8;border-radius:50%"></span> เจ้าหน้าที่ (ไม่ได้อัพเดทนาน)</div>
     <div class="row"><span class="sw" style="background:#16a34a"></span> บ้านที่เยี่ยมแล้ว</div>
     <div class="row"><span class="sw" style="background:#dc2626"></span> บ้านที่ยังไม่เยี่ยม</div>
+    <div class="row"><span class="sw" style="background:#ea580c;border-radius:6px"></span> หน่วยบริการ (รพ./รพ.สต.)</div>
   </div>
 </div>
 
@@ -84,7 +92,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 19
 }).addTo(map);
 
-let staffMarkers = {}, houseMarkers = {};
+let staffMarkers = {}, houseMarkers = {}, facilityMarkers = {};
 let firstLoad = true;
 
 function staffIcon(stale){
@@ -92,6 +100,12 @@ function staffIcon(stale){
 }
 function houseIcon(visited){
   return L.divIcon({ className:'', html:'<div class="house-marker ' + (visited?'visited':'pending') + '"></div>', iconSize:[22,22], iconAnchor:[11,20] });
+}
+function facilityIcon(){
+  return L.divIcon({ className:'', html:'<div class="facility-marker">🏥</div>', iconSize:[30,30], iconAnchor:[15,15] });
+}
+function esc(s){
+  return String(s==null?'':s).replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 }
 
 function isStale(updatedStr){
@@ -113,6 +127,7 @@ async function refresh(){
     document.getElementById("kpiVisited").textContent = visitedCount;
     document.getElementById("kpiPending").textContent = data.houses.length - visitedCount;
     document.getElementById("kpiStaff").textContent = data.staff.filter(s=>!isStale(s.updated)).length;
+    document.getElementById("kpiFacility").textContent = (data.facilities||[]).length;
 
     const seenStaff = {};
     data.staff.forEach(s=>{
@@ -124,11 +139,13 @@ async function refresh(){
       } else {
         staffMarkers[s.staffId] = L.marker(ll, { icon: staffIcon(stale) }).addTo(map);
       }
-      staffMarkers[s.staffId].bindPopup(
-        '<b>' + s.name + '</b><br>' + (s.position||'') +
+      const staffHtml =
+        '<b>👤 ' + esc(s.name) + '</b>' + (s.position ? '<br>' + esc(s.position) : '') +
         '<br>เยี่ยมวันนี้: ' + (s.todayCount||0) + ' หลัง' +
-        '<br>อัพเดทล่าสุด: ' + s.updated
-      );
+        '<br>อัพเดทล่าสุด: ' + esc(s.updated) +
+        (stale ? '<br><span style="color:#94a3b8">⚠️ ไม่ได้อัพเดทตำแหน่งนาน</span>' : '');
+      staffMarkers[s.staffId].bindTooltip(staffHtml, { className:'hv-tip', direction:'top', offset:[0,-16], opacity:1 });
+      staffMarkers[s.staffId].bindPopup(staffHtml);
     });
     Object.keys(staffMarkers).forEach(id=>{ if(!seenStaff[id]){ map.removeLayer(staffMarkers[id]); delete staffMarkers[id]; } });
 
@@ -142,17 +159,37 @@ async function refresh(){
       } else {
         houseMarkers[h.houseId] = L.marker(ll, { icon: houseIcon(visited) }).addTo(map);
       }
-      houseMarkers[h.houseId].bindPopup(
-        '<b>' + h.name + '</b><br>' + h.address +
-        (h.category ? '<br>กลุ่ม: ' + h.category : '') +
-        '<br>สถานะ: ' + h.status +
-        (h.lastVisit ? '<br>เยี่ยมล่าสุด: ' + h.lastVisit + (h.lastStaff?' โดย '+h.lastStaff:'') : '')
-      );
+      const houseHtml =
+        '<b>🏠 ' + esc(h.name) + '</b><br>' + esc(h.address) +
+        (h.category ? '<br>กลุ่ม: ' + esc(h.category) : '') +
+        '<br>สถานะ: ' + esc(h.status) +
+        (h.lastVisit ? '<br>เยี่ยมล่าสุด: ' + esc(h.lastVisit) + (h.lastStaff?' โดย '+esc(h.lastStaff):'') : '');
+      houseMarkers[h.houseId].bindTooltip(houseHtml, { className:'hv-tip', direction:'top', offset:[0,-20], opacity:1 });
+      houseMarkers[h.houseId].bindPopup(houseHtml);
     });
     Object.keys(houseMarkers).forEach(id=>{ if(!seenHouse[id]){ map.removeLayer(houseMarkers[id]); delete houseMarkers[id]; } });
 
+    const seenFacility = {};
+    (data.facilities||[]).forEach(f=>{
+      seenFacility[f.facilityId] = true;
+      const ll = [f.lat, f.lng];
+      if (facilityMarkers[f.facilityId]) {
+        facilityMarkers[f.facilityId].setLatLng(ll);
+      } else {
+        facilityMarkers[f.facilityId] = L.marker(ll, { icon: facilityIcon(), zIndexOffset: 500 }).addTo(map);
+      }
+      const facHtml =
+        '<b>🏥 ' + esc(f.name) + '</b>' + (f.type ? '<br>' + esc(f.type) : '') +
+        (f.address ? '<br>' + esc(f.address) : '') +
+        (f.phone ? '<br>โทร: ' + esc(f.phone) : '') +
+        (f.detail ? '<br>' + esc(f.detail) : '');
+      facilityMarkers[f.facilityId].bindTooltip(facHtml, { className:'hv-tip', direction:'top', offset:[0,-16], opacity:1 });
+      facilityMarkers[f.facilityId].bindPopup(facHtml);
+    });
+    Object.keys(facilityMarkers).forEach(id=>{ if(!seenFacility[id]){ map.removeLayer(facilityMarkers[id]); delete facilityMarkers[id]; } });
+
     if (firstLoad) {
-      const all = [...data.staff.map(s=>[s.lat,s.lng]), ...data.houses.map(h=>[h.lat,h.lng])];
+      const all = [...data.staff.map(s=>[s.lat,s.lng]), ...data.houses.map(h=>[h.lat,h.lng]), ...(data.facilities||[]).map(f=>[f.lat,f.lng])];
       if (all.length) map.fitBounds(all, { padding:[40,40] });
       firstLoad = false;
     }
