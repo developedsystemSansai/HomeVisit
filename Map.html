@@ -33,6 +33,11 @@ header h1{font-size:15px;font-weight:700}
 .house-marker.visited{background:#16a34a}
 .house-marker.pending{background:#dc2626}
 .leaflet-popup-content{font-size:13px;line-height:1.6}
+
+.pagenav{background:var(--primary-dk);display:flex;gap:2px;padding:0 14px;overflow-x:auto}
+.pagenav a{color:rgba(255,255,255,.65);text-decoration:none;font-size:12.5px;font-weight:600;padding:9px 12px;border-bottom:2.5px solid transparent;white-space:nowrap}
+.pagenav a.active{color:#fff;border-bottom-color:#fff}
+.pagenav a:hover{color:#fff}
 </style>
 </head>
 <body>
@@ -47,6 +52,12 @@ header h1{font-size:15px;font-weight:700}
     <div class="stat"><b id="kpiStaff">–</b>จนท.ออกปฏิบัติงาน</div>
   </div>
 </header>
+
+<nav class="pagenav">
+  <a href="Map.html" class="active">🗺️ แผนที่เรียลไทม์</a>
+  <a href="Field.html">📷 แอปเจ้าหน้าที่</a>
+  <a href="Register.html">📝 ลงทะเบียน</a>
+</nav>
 
 <div class="wrap">
   <div id="map"></div>
