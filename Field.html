@@ -29,7 +29,8 @@ button{font-family:inherit;cursor:pointer}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 
 /* ── header ── */
-.appbar{position:sticky;top:0;z-index:20;background:var(--forest-dk);color:#fff;padding:12px 16px;display:flex;align-items:center;gap:10px;box-shadow:0 2px 12px rgba(0,0,0,.15)}
+.topbar{position:sticky;top:0;z-index:20;box-shadow:0 2px 12px rgba(0,0,0,.15)}
+.appbar{background:var(--forest-dk);color:#fff;padding:12px 16px;display:flex;align-items:center;gap:10px}
 .mark{width:30px;height:30px;flex-shrink:0}
 .appbar .titles{line-height:1.25}
 .appbar .org{font-family:var(--font-d);font-size:14px;font-weight:700}
@@ -37,6 +38,11 @@ button{font-family:inherit;cursor:pointer}
 .gps-pill{margin-left:auto;display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.1);border-radius:20px;padding:6px 10px;font-size:11px;font-weight:600;white-space:nowrap}
 .dot{width:7px;height:7px;border-radius:50%;background:#7c8f83}
 .dot.live{background:#5fd989;box-shadow:0 0 0 3px rgba(95,217,137,.28)}
+
+.pagenav{background:var(--forest);display:flex;gap:2px;padding:0 16px;overflow-x:auto}
+.pagenav a{color:rgba(255,255,255,.65);text-decoration:none;font-size:12px;font-weight:700;padding:9px 10px;border-bottom:2.5px solid transparent;white-space:nowrap}
+.pagenav a.active{color:#fff;border-bottom-color:#fff}
+.pagenav a:hover{color:#fff}
 
 main{max-width:520px;margin:0 auto;padding:18px 16px calc(24px + var(--safe-b))}
 
@@ -133,14 +139,21 @@ textarea:focus,input:focus{outline:2px solid var(--forest);outline-offset:1px}
 </head>
 <body>
 
-<header class="appbar">
-  <svg class="mark" viewBox="0 0 48 48" fill="none"><path d="M6 24 22 8a3 3 0 0 1 4 0l16 16" stroke="#fbe7d2" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M11 20v18a2 2 0 0 0 2 2h5v-11h12v11h5a2 2 0 0 0 2-2V20" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-  <div class="titles">
-    <div class="org" id="orgLine">รพ.สต. เยี่ยมบ้าน</div>
-    <div class="sub">งานเยี่ยมบ้านเชิงรุกในชุมชน</div>
-  </div>
-  <div class="gps-pill"><span class="dot" id="gpsDot"></span><span id="gpsLabel">ไม่ได้เชื่อมตำแหน่ง</span></div>
-</header>
+<div class="topbar">
+  <header class="appbar">
+    <svg class="mark" viewBox="0 0 48 48" fill="none"><path d="M6 24 22 8a3 3 0 0 1 4 0l16 16" stroke="#fbe7d2" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M11 20v18a2 2 0 0 0 2 2h5v-11h12v11h5a2 2 0 0 0 2-2V20" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div class="titles">
+      <div class="org" id="orgLine">รพ.สต. เยี่ยมบ้าน</div>
+      <div class="sub">งานเยี่ยมบ้านเชิงรุกในชุมชน</div>
+    </div>
+    <div class="gps-pill"><span class="dot" id="gpsDot"></span><span id="gpsLabel">ไม่ได้เชื่อมตำแหน่ง</span></div>
+  </header>
+  <nav class="pagenav">
+    <a href="Field.html" class="active">📷 แอปเจ้าหน้าที่</a>
+    <a href="Map.html">🗺️ แผนที่เรียลไทม์</a>
+    <a href="Register.html">📝 ลงทะเบียน</a>
+  </nav>
+</div>
 
 <main>
   <div id="loginSection">
