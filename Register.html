@@ -147,6 +147,7 @@ hr.rule{border:none;border-top:1px solid var(--line);margin:22px 0 0}
     <div class="tabs">
       <button class="tab active" id="tabHouse" onclick="switchTab('house')">บ้านและผู้ป่วย</button>
       <button class="tab" id="tabStaff" onclick="switchTab('staff')">เจ้าหน้าที่</button>
+      <button class="tab" id="tabFacility" onclick="switchTab('facility')">หน่วยบริการ</button>
     </div>
   </div>
 
@@ -254,6 +255,69 @@ hr.rule{border:none;border-top:1px solid var(--line);margin:22px 0 0}
     </div>
     <div class="result" id="staffResult"></div>
   </div>
+
+  <!-- ══ FACILITY FORM ══ -->
+  <div id="facilityForm" style="display:none">
+    <div class="section">
+      <div class="section-head"><span class="section-idx">01</span><span class="section-title">ข้อมูลหน่วยบริการ</span></div>
+      <p class="section-hint">ปักหมุด รพ. / รพ.สต. / ศูนย์บริการสาธารณสุข ที่มีอยู่จริงในพื้นที่ ให้แสดงบนแผนที่เรียลไทม์</p>
+      <div class="field" id="fFacName">
+        <label>ชื่อหน่วยบริการ<span class="req">*</span></label>
+        <input type="text" id="facName" placeholder="รพ.สต. บ้านสันทราย" autocomplete="off">
+        <div class="err-msg">กรุณากรอกชื่อหน่วยบริการ</div>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label>ประเภท</label>
+          <select id="facType">
+            <option value="">ไม่ระบุ</option>
+            <option>โรงพยาบาลส่งเสริมสุขภาพตำบล (รพ.สต.)</option>
+            <option>โรงพยาบาลชุมชน</option>
+            <option>โรงพยาบาลทั่วไป</option>
+            <option>โรงพยาบาลศูนย์</option>
+            <option>ศูนย์สุขภาพชุมชนเมือง (ศสม.)</option>
+            <option>คลินิกเอกชน</option>
+            <option>อื่นๆ</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>เบอร์โทร</label>
+          <input type="tel" id="facPhone" placeholder="053xxxxxx">
+        </div>
+      </div>
+      <div class="field">
+        <label>ที่อยู่</label>
+        <textarea id="facAddress" placeholder="ที่ตั้งหน่วยบริการ"></textarea>
+      </div>
+    </div>
+
+    <hr class="rule">
+
+    <div class="section">
+      <div class="section-head"><span class="section-idx">02</span><span class="section-title">ตำแหน่งหน่วยบริการ</span><span class="req">*</span></div>
+      <p class="section-hint">ใช้ตำแหน่งปัจจุบัน หรือแตะบนแผนที่เพื่อกำหนดจุดเอง</p>
+      <button class="gps-btn" type="button" onclick="useCurrentLocationFacility()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke-linecap="round"/></svg>
+        ใช้ตำแหน่งปัจจุบัน
+      </button>
+      <div class="map-frame"><div id="pinMapFacility"></div></div>
+      <div class="coords" id="facCoords">ยังไม่ได้กำหนดตำแหน่ง</div>
+    </div>
+
+    <hr class="rule">
+
+    <div class="section">
+      <div class="field">
+        <label>รายละเอียดเพิ่มเติม</label>
+        <textarea id="facDetail" placeholder="เช่น เวลาเปิด-ปิด, บริการที่ให้, จุดสังเกต ฯลฯ — ระบุอะไรก็ได้ที่อยากให้แสดงตอนเอาเมาส์ชี้บนแผนที่"></textarea>
+      </div>
+    </div>
+
+    <div class="submit-wrap">
+      <button class="submit-btn" id="facSubmitBtn" onclick="submitFacility()">บันทึกหน่วยบริการ</button>
+    </div>
+    <div class="result" id="facilityResult"></div>
+  </div>
 </main>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -268,6 +332,8 @@ document.getElementById("orgEyebrow").textContent = ORG_LABEL;
 
 let selectedLat = null, selectedLng = null;
 let houseMap, houseMarker;
+let selectedLatF = null, selectedLngF = null;
+let facilityMap, facilityMarker, facilityMapReady = false;
 let pendingPhoto = null;
 
 function initMap(){
@@ -294,13 +360,40 @@ function useCurrentLocation(){
   }, err=>{ toast("ไม่สามารถอ่านตำแหน่งได้: " + err.message,"err"); c.textContent = "ยังไม่ได้กำหนดตำแหน่ง"; }, { enableHighAccuracy:true });
 }
 
+function initFacilityMap(){
+  if (facilityMapReady) return;
+  facilityMap = L.map('pinMapFacility').setView(DEFAULT_CENTER, 14);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution:'&copy; OpenStreetMap' }).addTo(facilityMap);
+  facilityMap.on('click', e=>{ setPinFacility(e.latlng.lat, e.latlng.lng); });
+  facilityMapReady = true;
+}
+function setPinFacility(lat, lng){
+  selectedLatF = lat; selectedLngF = lng;
+  if (facilityMarker) facilityMarker.setLatLng([lat,lng]); else facilityMarker = L.marker([lat,lng]).addTo(facilityMap);
+  facilityMap.setView([lat,lng], 16);
+  const c = document.getElementById("facCoords");
+  c.classList.add("set");
+  c.textContent = lat.toFixed(6) + ", " + lng.toFixed(6);
+}
+function useCurrentLocationFacility(){
+  if (!navigator.geolocation) { toast("อุปกรณ์นี้ไม่รองรับ GPS","err"); return; }
+  const c = document.getElementById("facCoords");
+  c.textContent = "กำลังค้นหาตำแหน่ง...";
+  navigator.geolocation.getCurrentPosition(pos=>{
+    setPinFacility(pos.coords.latitude, pos.coords.longitude);
+  }, err=>{ toast("ไม่สามารถอ่านตำแหน่งได้: " + err.message,"err"); c.textContent = "ยังไม่ได้กำหนดตำแหน่ง"; }, { enableHighAccuracy:true });
+}
+
 function switchTab(t){
   document.getElementById("tabHouse").classList.toggle("active", t==="house");
   document.getElementById("tabStaff").classList.toggle("active", t==="staff");
+  document.getElementById("tabFacility").classList.toggle("active", t==="facility");
   document.getElementById("houseForm").style.display = t==="house" ? "block":"none";
   document.getElementById("staffForm").style.display = t==="staff" ? "block":"none";
-  document.getElementById("orgLine").textContent = t==="house" ? "ลงทะเบียนบ้าน" : "ลงทะเบียนเจ้าหน้าที่";
+  document.getElementById("facilityForm").style.display = t==="facility" ? "block":"none";
+  document.getElementById("orgLine").textContent = t==="house" ? "ลงทะเบียนบ้าน" : t==="staff" ? "ลงทะเบียนเจ้าหน้าที่" : "ลงทะเบียนหน่วยบริการ";
   if (t==="house") setTimeout(()=>houseMap.invalidateSize(), 100);
+  if (t==="facility") { initFacilityMap(); setTimeout(()=>facilityMap.invalidateSize(), 100); }
 }
 
 function toast(msg, type){
@@ -455,6 +548,47 @@ async function submitStaff(){
     box.innerHTML = '<div class="result-panel">' + r.message + '</div>';
     toast(r.message, "err");
     btn.disabled = false; btn.textContent = "บันทึกและออกรหัสประจำตัว";
+  }
+}
+
+// ── submit facility ──────────────────
+async function submitFacility(){
+  const name = document.getElementById("facName").value.trim();
+  markInvalid("fFacName", !name);
+  if (!name) { toast("กรุณากรอกชื่อหน่วยบริการ","err"); return; }
+  if (selectedLatF === null) { toast("กรุณากำหนดตำแหน่งหน่วยบริการก่อน","err"); return; }
+
+  const btn = document.getElementById("facSubmitBtn");
+  btn.disabled = true; btn.innerHTML = '<span class="spin"></span> กำลังบันทึก';
+
+  const payload = {
+    action:"registerFacility", name,
+    type: document.getElementById("facType").value,
+    address: document.getElementById("facAddress").value.trim(),
+    phone: document.getElementById("facPhone").value.trim(),
+    detail: document.getElementById("facDetail").value.trim(),
+    lat: selectedLatF, lng: selectedLngF
+  };
+  let r;
+  try { r = await callApi(payload); }
+  catch(e) { toast("เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ","err"); btn.disabled = false; btn.textContent = "บันทึกหน่วยบริการ"; return; }
+
+  const box = document.getElementById("facilityResult");
+  box.classList.add("show");
+  if (r.status === "ok") {
+    box.className = "result show ok";
+    box.innerHTML = '<div class="result-panel"><div class="result-eyebrow">บันทึกสำเร็จ</div>' +
+      '<h3>' + r.name + '</h3>' +
+      '<div class="idtext">' + r.facilityId + '</div>' +
+      '<div class="result-actions">' +
+        '<button class="reset-btn" style="flex:1" onclick="location.reload()">ลงทะเบียนหน่วยถัดไป</button>' +
+      '</div></div>';
+    btn.textContent = "บันทึกแล้ว";
+  } else {
+    box.className = "result show err";
+    box.innerHTML = '<div class="result-panel">' + r.message + '</div>';
+    toast(r.message, "err");
+    btn.disabled = false; btn.textContent = "บันทึกหน่วยบริการ";
   }
 }
 </script>
